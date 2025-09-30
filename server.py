@@ -1,14 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 from app.finance_crew import run_financial_analysis
-import io
-import sys
-from contextlib import redirect_stdout
-
 # create FastMCP instance
 mcp = FastMCP("financial-analyst")
-
-# In-memory storage for generated code
-_code_storage = {"current_code": None}
 
 @mcp.tool()
 def analyze_stock(query: str) -> str:
@@ -32,8 +25,6 @@ def analyze_stock(query: str) -> str:
     """
     try:
         result = run_financial_analysis(query)
-        # Automatically store the generated code
-        _code_storage["current_code"] = result
         return result
     except Exception as e:
         return f"Error: {e}"
@@ -52,50 +43,19 @@ def save_code(code: str) -> str:
         str: A message indicating the code was saved successfully.
     """
     try:
-        _code_storage["current_code"] = code
-        return f"Code saved successfully in memory. Code length: {len(code)} characters."
+        with open('stock_analysis.py', 'w') as f:
+            f.write(code)
+        return "Code saved to stock_analysis.py"
     except Exception as e:
         return f"Error: {e}"
 
 @mcp.tool()
 def run_code_and_show_plot() -> str:
     """
-    Run the previously saved code from memory and generate the plot.
-    Returns the output or any errors from execution.
+    Run the code in stock_analysis.py and generate the plot
     """
-    try:
-        if not _code_storage["current_code"]:
-            return "Error: No code has been saved yet. Please use analyze_stock or save_code first."
-        
-        # Capture stdout
-        output_buffer = io.StringIO()
-        
-        # Execute the code
-        with redirect_stdout(output_buffer):
-            exec(_code_storage["current_code"], {"__name__": "__main__"})
-        
-        output = output_buffer.getvalue()
-        
-        if output:
-            return f"Code executed successfully. Output:\n{output}"
-        else:
-            return "Code executed successfully (no output generated)"
-            
-    except Exception as e:
-        return f"Error executing code: {str(e)}"
-
-@mcp.tool()
-def get_saved_code() -> str:
-    """
-    Retrieve the currently saved code from memory.
-    
-    Returns:
-        str: The saved code or a message if no code is saved.
-    """
-    if _code_storage["current_code"]:
-        return _code_storage["current_code"]
-    else:
-        return "No code currently saved in memory."
+    with open('stock_analysis.py', 'r') as f:
+        exec(f.read())
 
 def main():
     mcp.run(transport='stdio')
