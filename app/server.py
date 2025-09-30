@@ -1,6 +1,5 @@
 from mcp.server.fastmcp import FastMCP
-from app.finance_crew import run_financial_analysis
-
+from .finance_crew import run_financial_analysis
 # create FastMCP instance
 mcp = FastMCP("financial-analyst")
 
@@ -58,6 +57,8 @@ def run_code_and_show_plot() -> str:
     with open('stock_analysis.py', 'r') as f:
         exec(f.read())
 
-# Run the server locally
-if __name__ == "__main__":
+def main():
     mcp.run(transport='stdio')
+
+if __name__ == "__main__":
+    main()
